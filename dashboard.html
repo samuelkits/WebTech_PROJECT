@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HealthHub | Doctor Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* === HEALTHHUB DASHBOARD STYLES ===
+         * Light red aesthetic color palette
+         * Interactive elements with shadows and hover effects
+         * Cozy and attractive design
+         */
+        :root {
+            --light-bg: #fff5f5;
+            --white: #ffffff;
+            --off-white: #ffeaea;
+            --light-gray: #f8d7d7;
+            --dark-gray: #5e4a4a;
+            --dark-navy: #3a1c1c;
+            --accent: #e63946; /* Vibrant red */
+            --accent-tint: rgba(230, 57, 70, 0.1);
+            --shadow: rgba(58, 28, 28, 0.1);
+            --font-primary: 'Poppins', sans-serif;
+            --font-secondary: 'Playfair Display', serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font-primary);
+            background-color: var(--light-bg);
+            color: var(--dark-gray);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* Preloader */
+        .preloader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--white);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+        .preloader.fade-out {
+            opacity: 0;
+            visibility: hidden;
+        }
+        .loader {
+            border: 4px solid var(--light-gray);
+            border-top: 4px solid var(--accent);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+
+        /* Custom Cursor Spotlight */
+        .cursor-spotlight {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--accent-tint) 0%, rgba(255, 255, 255, 0) 60%);
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            transition: width 0.3s, height 0.3s;
+            z-index: 999;
+        }
+
+        /* Navigation */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 5%;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            background-color: rgba(255, 245, 245, 0.85);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 15px -5px var(--shadow);
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--accent);
+            font-family: var(--font-secondary);
+            transition: transform 0.3s ease;
+            text-decoration: none;
+        }
+        .logo:hover {
+            transform: scale(1.05);
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+        }
+        .nav-links li {
+            margin-left: 2.5rem;
+        }
+        .nav-links a {
+            color: var(--dark-gray);
+            text-decoration: none;
+            font-weight: 500;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        .nav-links a:hover {
+            color: var(--accent);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 2px solid var(--accent);
+        }
+
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .burger { display: none; cursor: pointer; }
+        .burger div { width: 25px; height: 2px; background-color: var(--accent); margin: 5px; transition: all 0.3s ease; }
+
+        /* Dashboard Layout */
+        .dashboard-container {
+            display: flex;
+            min-height: 100vh;
+            padding-top: 80px;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
+            background-color: var(--white);
+            box-shadow: 4px 0 15px -5px var(--shadow);
+            padding: 2rem 0;
+            position: fixed;
+            height: calc(100vh - 80px);
+            overflow-y: auto;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+        }
+
+        .sidebar-menu li {
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar-menu a {
+            display: flex;
+            align-items: center;
+            padding: 0.8rem 1.5rem;
+            color: var(--dark-gray);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-menu a:hover, .sidebar-menu a.active {
+            background-color: var(--accent-tint);
+            color: var(--accent);
+            border-right: 3px solid var(--accent);
+        }
+
+        .sidebar-menu i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 250px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .dashboard-header h1 {
+            font-size: 2rem;
+            color: var(--dark-navy);
+            font-family: var(--font-secondary);
+        }
+
+        .date-display {
+            color: var(--dark-gray);
+            font-weight: 500;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background-color: var(--white);
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 15px -5px var(--shadow);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px -5px var(--shadow);
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--accent-tint);
+            color: var(--accent);
+            font-size: 1.5rem;
+        }
+
+        .stat-info h3 {
+            font-size: 1.8rem;
+            color: var(--dark-navy);
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-info p {
+            color: var(--dark-gray);
+            font-size: 0.9rem;
+        }
+
+        /* Doctor Profile Section */
+        .doctor-profile {
+            background-color: var(--white);
+            border-radius: 8px;
+            padding: 2rem;
+            box-shadow: 0 4px 15px -5px var(--shadow);
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .doctor-profile:hover {
+            box-shadow: 0 10px 20px -5px var(--shadow);
+        }
+
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 3px solid var(--accent);
+        }
+
+        .profile-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: grayscale(100%);
+            transition: filter 0.3s ease;
+        }
+
+        .doctor-profile:hover .profile-avatar img {
+            filter: none;
+        }
+
+        .profile-info h2 {
+            font-size: 1.8rem;
+            color: var(--dark-navy);
+            margin-bottom: 0.5rem;
+        }
+
+        .profile-info p {
+            color: var(--accent);
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .profile-info .specialty {
+            color: var(--dark-gray);
+            font-weight: 400;
+        }
+
+        .profile-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .detail-label {
+            font-size: 0.9rem;
+            color: var(--dark-gray);
+            margin-bottom: 0.25rem;
+        }
+
+        .detail-value {
+            font-weight: 600;
+            color: var(--dark-navy);
+        }
+
+        /* Patients Section */
+        .patients-section {
+            background-color: var(--white);
+            border-radius: 8px;
+            padding: 2rem;
+            box-shadow: 0 4px 15px -5px var(--shadow);
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .patients-section:hover {
+            box-shadow: 0 10px 20px -5px var(--shadow);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-header h2 {
+            font-size: 1.5rem;
+            color: var(--dark-navy);
+            font-family: var(--font-secondary);
+        }
+
+        .view-all {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .view-all:hover {
+            text-decoration: underline;
+        }
+
+        .patients-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .patient-card {
+            background-color: var(--off-white);
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 10px -5px var(--shadow);
+            transition: all 0.3s ease;
+        }
+
+        .patient-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px -5px var(--shadow);
+        }
+
+        .patient-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .patient-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            overflow: hidden;
+        }
+
+        .patient-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: grayscale(100%);
+            transition: filter 0.3s ease;
+        }
+
+        .patient-card:hover .patient-avatar img {
+            filter: none;
+        }
+
+        .patient-info h3 {
+            font-size: 1.2rem;
+            color: var(--dark-navy);
+            margin-bottom: 0.25rem;
+        }
+
+        .patient-info p {
+            color: var(--dark-gray);
+            font-size: 0.9rem;
+        }
+
+        .patient-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .patient-detail {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .patient-detail .label {
+            font-size: 0.8rem;
+            color: var(--dark-gray);
+        }
+
+        .patient-detail .value {
+            font-weight: 600;
+            color: var(--dark-navy);
+        }
+
+        .patient-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            border: none;
+            cursor: pointer;
+            text-align: center;
+            font-family: var(--font-primary);
+            font-size: 0.9rem;
+        }
+
+        .btn-primary {
+            background-color: var(--accent);
+            color: var(--white);
+        }
+
+        .btn-primary:hover {
+            background-color: #d32f2f;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px -5px var(--shadow);
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            color: var(--accent);
+            border: 1px solid var(--accent);
+        }
+
+        .btn-outline:hover {
+            background-color: var(--accent-tint);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px -5px var(--shadow);
+        }
+
+        /* Footer */
+        .footer {
+            padding: 1.5rem 5%;
+            text-align: center;
+            font-size: 0.9rem;
+            color: var(--dark-gray);
+            background-color: var(--off-white);
+            margin-left: 250px;
+            transition: all 0.3s ease;
+        }
+        .footer a {
+            color: var(--accent);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 70px;
+            }
+            .sidebar-menu span {
+                display: none;
+            }
+            .sidebar-menu i {
+                margin-right: 0;
+                font-size: 1.2rem;
+            }
+            .main-content {
+                margin-left: 70px;
+            }
+            .footer {
+                margin-left: 70px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .cursor-spotlight { display: none; }
+            .sidebar {
+                transform: translateX(-100%);
+                width: 250px;
+                z-index: 900;
+            }
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            .sidebar-menu span {
+                display: inline;
+            }
+            .main-content {
+                margin-left: 0;
+            }
+            .footer {
+                margin-left: 0;
+            }
+            .nav-links {
+                position: fixed;
+                right: 0;
+                top: 0;
+                background-color: var(--off-white);
+                height: 100vh;
+                width: min(75vw, 400px);
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 2rem;
+                transform: translateX(100%);
+                transition: transform 0.3s ease-out;
+                box-shadow: -10px 0px 30px -15px var(--shadow);
+            }
+            .nav-links.active { transform: translateX(0); }
+            .nav-links li { margin: 0; }
+            .burger {
+                display: block;
+                position: relative;
+                z-index: 1001;
+            }
+            .burger.active .line1 { transform: rotate(-45deg) translate(-5px, 6px); }
+            .burger.active .line2 { opacity: 0; }
+            .burger.active .line3 { transform: rotate(45deg) translate(-5px, -6px); }
+            .profile-header {
+                flex-direction: column;
+                text-align: center;
+            }
+            .patients-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="preloader">
+        <div class="loader"></div>
+    </div>
+
+    <div class="cursor-spotlight"></div>
+
+    <header class="header">
+        <nav class="navbar">
+            <div class="nav-left">
+                <a href="index.html" class="logo">HealthHub</a>
+                <div class="burger">
+                    <div class="line1"></div>
+                    <div class="line2"></div>
+                    <div class="line3"></div>
+                </div>
+            </div>
+            <ul class="nav-links">
+                <li><a href="#">Home</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Features</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+            <div class="user-profile">
+                <div class="user-avatar">
+                    <img src="https://samuelkits.github.io/Pic/3.jpg" alt="Dr. Michael Chen">
+                </div>
+                <span>Dr. Michael Chen</span>
+            </div>
+        </nav>
+    </header>
+
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <ul class="sidebar-menu">
+                <li><a href="#" class="active"><i class="fas fa-home"></i> <span>Dashboard</span></a></li>
+                <li><a href="#"><i class="fas fa-calendar-check"></i> <span>Appointments</span></a></li>
+                <li><a href="#"><i class="fas fa-user-injured"></i> <span>Patients</span></a></li>
+                <li><a href="#"><i class="fas fa-prescription"></i> <span>Prescriptions</span></a></li>
+                <li><a href="#"><i class="fas fa-file-medical"></i> <span>Medical Records</span></a></li>
+                <li><a href="#"><i class="fas fa-comments"></i> <span>Messages</span></a></li>
+                <li><a href="#"><i class="fas fa-chart-line"></i> <span>Analytics</span></a></li>
+                <li><a href="#"><i class="fas fa-cog"></i> <span>Settings</span></a></li>
+                <li><a href="#"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></a></li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="dashboard-header">
+                <h1>Doctor Dashboard</h1>
+                <div class="date-display" id="currentDate">Loading...</div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-user-injured"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>24</h3>
+                        <p>Today's Patients</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>8</h3>
+                        <p>Upcoming Appointments</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>12</h3>
+                        <p>Pending Consultations</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-prescription"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>18</h3>
+                        <p>Prescriptions This Week</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Doctor Profile -->
+            <div class="doctor-profile">
+                <div class="profile-header">
+                    <div class="profile-avatar">
+                        <img src="https://samuelkits.github.io/Pic/3.jpg" alt="Dr. Michael Chen">
+                    </div>
+                    <div class="profile-info">
+                        <h2>Dr. Michael Chen</h2>
+                        <p>Cardiologist</p>
+                        <p class="specialty">MD, FACC</p>
+                    </div>
+                </div>
+                <div class="profile-details">
+                    <div class="detail-item">
+                        <span class="detail-label">Email</span>
+                        <span class="detail-value">mc@healthhub.com</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Phone</span>
+                        <span class="detail-value">+1 (555) 123-4567</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Department</span>
+                        <span class="detail-value">Cardiology</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Years of Experience</span>
+                        <span class="detail-value">12 Years</span>
+                    </div>
+                </div>
+                <div class="profile-actions">
+                    <button class="btn btn-primary">Edit Profile</button>
+                    <button class="btn btn-outline">View Schedule</button>
+                </div>
+            </div>
+
+            <!-- Patients Section -->
+            <div class="patients-section">
+                <div class="section-header">
+                    <h2>Recent Patients</h2>
+                    <a href="#" class="view-all">View All</a>
+                </div>
+                <div class="patients-grid">
+                    <!-- Patient 1 -->
+                    <div class="patient-card">
+                        <div class="patient-header">
+                            <div class="patient-avatar">
+                                <img src="https://samuelkits.github.io/Pic/9.png" alt="Sarah Johnson">
+                            </div>
+                            <div class="patient-info">
+                                <h3>Sarah Johnson</h3>
+                                <p>Patient ID: #PT-7842</p>
+                            </div>
+                        </div>
+                        <div class="patient-details">
+                            <div class="patient-detail">
+                                <span class="label">Age</span>
+                                <span class="value">34</span>
+                            </div>
+                            <div class="patient-detail">
+                                <span class="label">Gender</span>
+                                <span class="value">Female</span>
+                            </div>
+                            <div class="patient-detail">
+                                <span class="label">Last Visit</span>
+                                <span class="value">2 days ago</span>
+                            </div>
+                            <div class="patient-detail">
+                                <span class="label">Condition</span>
+                                <span class="value">Hypertension</span>
+                            </div>
+                        </div>
+                        <div class="patient-actions">
+                            <button class="btn btn-primary">View Details</button>
+                            <button class="btn btn-outline">Message</button>
+                        </div>
+                    </div>
+
+                    <!-- Patient 2 -->
+                    <div class="patient-card">
+                        <div class="patient-header">
+                            <div class="patient-avatar">
+                                <img src="https://samuelkits.github.io/Pic/4.jpg" alt="Robert Wilson">
+                            </div>
+                            <div class="patient-info">
+                                <h3>Robert Wilson</h3>
+                                <p>Patient ID: #PT-6391</p>
+                            </div>
+                        </div>
+                        <div class="patient-details">
+                            <div class="patient-detail">
+                                <span class="label">Age</span>
+                                <span class="value">52</span>
+                            </div>
+                            <div class="patient-detail">
+                                <span class="label">Gender</span>
+                                <span class="value">Male</span>
+                            </div>
+                            <div class="patient-detail">
+                                <span class="label">Last Visit</span>
+                                <span class="value">1 week ago</span>
+                            </div>
+                            <div class="patient-detail">
+                                <span class="label">Condition</span>
+                                <span class="value">Arrhythmia</span>
+                            </div>
+                        </div>
+                        <div class="patient-actions">
+                            <button class="btn btn-primary">View Details</button>
+                            <button class="btn btn-outline">Message</button>
+                        </div>
+                    </div>
+
+                    <!-- Patient 3 -->
+                    <div class="patient-card">
+                        <div class="patient-header">
+                            <div class="patient-avatar">
+                                <img src="https://samuelkits.github.io/Pic/9.png" alt="Emily Davis">
+                            </div>
+                            <div class="patient-info">
+                                <h3>Emily Davis</h3>
+                                <p>Patient ID: #PT-9257</p>
+                            </div>
+                        </div>
+                        <div class="patient-details">
+                            <div class="patient-detail">
+                                <span class="label">Age</span>
+                                <span class="value">41</span>
+                            </div>
+                            <div class="patient-detail">
+                                <span class="label">Gender</span>
+                                <span class="value">Female</span>
+                            </div>
+                            <div class="patient-detail">
+                                <span class="label">Last Visit</span>
+                                <span class="value">3 days ago</span>
+                            </div>
+                            <div class="patient-detail">
+                                <span class="label">Condition</span>
+                                <span class="value">High Cholesterol</span>
+                            </div>
+                        </div>
+                        <div class="patient-actions">
+                            <button class="btn btn-primary">View Details</button>
+                            <button class="btn btn-outline">Message</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <footer class="footer">
+        <p>© 2025 HealthHub | Doctor Dashboard</p>
+        <p>Secure Platform | HIPAA Compliant | Your Patients' Health, Our Priority</p>
+    </footer>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // --- PRELOADER ---
+        const preloader = document.querySelector('.preloader');
+        window.addEventListener('load', () => {
+            preloader.classList.add('fade-out');
+        });
+
+        // --- CURSOR SPOTLIGHT ---
+        const spotlight = document.querySelector('.cursor-spotlight');
+        window.addEventListener('mousemove', (e) => {
+            spotlight.style.left = `${e.clientX}px`;
+            spotlight.style.top = `${e.clientY}px`;
+        });
+
+        // --- MOBILE MENU ---
+        const burger = document.querySelector('.burger');
+        const navLinks = document.querySelector('.nav-links');
+        const sidebar = document.querySelector('.sidebar');
+        
+        burger.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+            sidebar.classList.toggle('active');
+            burger.classList.toggle('active');
+        });
+        
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', () => {
+                navLinks.classList.remove('active');
+                sidebar.classList.remove('active');
+                burger.classList.remove('active');
+            });
+        });
+
+        // --- CURRENT DATE DISPLAY ---
+        const dateDisplay = document.getElementById('currentDate');
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        dateDisplay.textContent = new Date().toLocaleDateString('en-US', options);
+
+        // --- PATIENT CARD INTERACTIONS ---
+        document.querySelectorAll('.patient-card .btn-primary').forEach(button => {
+            button.addEventListener('click', function() {
+                const patientName = this.closest('.patient-card').querySelector('h3').textContent;
+                alert(`Viewing details for ${patientName}`);
+            });
+        });
+
+        document.querySelectorAll('.patient-card .btn-outline').forEach(button => {
+            button.addEventListener('click', function() {
+                const patientName = this.closest('.patient-card').querySelector('h3').textContent;
+                alert(`Opening chat with ${patientName}`);
+            });
+        });
+
+        // --- PROFILE ACTIONS ---
+        document.querySelector('.profile-actions .btn-primary').addEventListener('click', function() {
+            alert('Opening profile editor...');
+        });
+
+        document.querySelector('.profile-actions .btn-outline').addEventListener('click', function() {
+            alert('Viewing schedule...');
+        });
+    });
+    </script>
+</body>
+</html>

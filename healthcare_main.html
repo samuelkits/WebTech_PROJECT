@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HealthHub | Online Doctor Consultation</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* === HEALTHHUB STYLES ===
+         * Light red aesthetic color palette
+         * Interactive elements with shadows and hover effects
+         * Graffiti-style elements for visual appeal
+         */
+        :root {
+            --light-bg: #fff5f5;
+            --white: #ffffff;
+            --off-white: #ffeaea;
+            --light-gray: #f8d7d7;
+            --dark-gray: #5e4a4a;
+            --dark-navy: #3a1c1c;
+            --accent: #e63946; /* Vibrant red */
+            --accent-tint: rgba(230, 57, 70, 0.1);
+            --shadow: rgba(58, 28, 28, 0.1);
+            --font-primary: 'Poppins', impact;
+            --font-secondary: 'Playfair Display', impact;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font-primary);
+            background-color: var(--light-bg);
+            color: var(--dark-gray);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* Preloader */
+        .preloader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--white);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+        .preloader.fade-out {
+            opacity: 0;
+            visibility: hidden;
+        }
+        .loader {
+            border: 4px solid var(--light-gray);
+            border-top: 4px solid var(--accent);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+
+        /* Custom Cursor Spotlight */
+        .cursor-spotlight {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--accent-tint) 0%, rgba(255, 255, 255, 0) 60%);
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            transition: width 0.3s, height 0.3s;
+            z-index: 999;
+        }
+
+        /* Navigation */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 5%;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            background-color: rgba(255, 245, 245, 0.85);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 15px -5px var(--shadow);
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--accent);
+            font-family: var(--font-secondary);
+            transition: transform 0.3s ease;
+        }
+        .logo:hover {
+            transform: scale(1.05);
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+        }
+        .nav-links li {
+            margin-left: 2.5rem;
+            counter-increment: item 1;
+        }
+        .nav-links a {
+            color: var(--dark-gray);
+            text-decoration: none;
+            font-weight: 500;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        .nav-links a::before {
+            content: '0' counter(item) '.';
+            margin-right: 5px;
+            color: var(--accent);
+            font-size: 0.9em;
+        }
+        .nav-links a:hover {
+            color: var(--accent);
+        }
+
+        .burger { display: none; cursor: pointer; }
+        .burger div { width: 25px; height: 2px; background-color: var(--accent); margin: 5px; transition: all 0.3s ease; }
+
+        /* Hero Section */
+        .hero {
+            display: flex;
+            min-height: 100vh;
+            padding: 0 5%;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero-content { flex: 1; padding-right: 2rem; }
+        .hero-image { flex: 1; position: relative; }
+
+        .hero-intro {
+            color: var(--accent);
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            opacity: 0;
+            animation: fadeIn 1s ease 0.2s forwards;
+        }
+        .hero-title {
+            font-size: clamp(40px, 8vw, 70px);
+            font-weight: 700;
+            font-family: var(--font-secondary);
+            color: var(--dark-navy);
+            margin-bottom: 0.5rem;
+            opacity: 0;
+            animation: fadeIn 1s ease 0.4s forwards;
+        }
+        .hero-subtitle {
+            font-size: clamp(30px, 6vw, 60px);
+            font-weight: 700;
+            color: var(--dark-gray);
+            margin-bottom: 1.5rem;
+            opacity: 0;
+            animation: fadeIn 1s ease 0.6s forwards;
+        }
+        .hero-text {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+            max-width: 550px;
+            opacity: 0;
+            animation: fadeIn 1s ease 0.8s forwards;
+        }
+        .hero-btn {
+            opacity: 0;
+            animation: fadeInUp 0.8s ease forwards 1s;
+        }
+
+        .image-container {
+            position: relative;
+            width: 100%;
+            max-width: 450px;
+            aspect-ratio: 1/1;
+            border-radius: 10px;
+            margin: 0 auto;
+        }
+        .image-container::after {
+            content: '';
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            width: 100%;
+            height: 100%;
+            border: 2px solid var(--accent);
+            border-radius: 10px;
+            z-index: -1;
+            transition: all 0.3s ease;
+        }
+        .image-container:hover::after {
+            top: 10px;
+            left: 10px;
+        }
+        .image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 10px;
+            filter: grayscale(100%);
+            transition: filter 0.5s ease;
+        }
+        .image-container:hover img {
+            filter: none;
+        }
+
+        /* Graffiti Elements */
+        .graffiti {
+            position: absolute;
+            z-index: -1;
+            opacity: 0.7;
+            mix-blend-mode: multiply;
+        }
+        .graffiti-1 {
+            top: 10%;
+            right: 5%;
+            width: 150px;
+            transform: rotate(15deg);
+        }
+        .graffiti-2 {
+            bottom: 10%;
+            left: 5%;
+            width: 120px;
+            transform: rotate(-10deg);
+        }
+        .graffiti-3 {
+            top: 40%;
+            left: 10%;
+            width: 100px;
+            transform: rotate(-5deg);
+        }
+        .graffiti-4 {
+            bottom: 30%;
+            right: 10%;
+            width: 130px;
+            transform: rotate(10deg);
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-block;
+            padding: 0.8rem 1.8rem;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            background-color: transparent;
+        }
+        .btn:hover {
+            background-color: var(--accent);
+            color: var(--white);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px -10px var(--shadow);
+        }
+
+        /* Sections */
+        section {
+            padding: 6rem 5%;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+            visibility: hidden;
+        }
+        section.visible {
+            opacity: 1;
+            transform: translateY(0);
+            visibility: visible;
+        }
+        .section-title {
+            font-size: clamp(26px, 5vw, 32px);
+            font-weight: 700;
+            margin-bottom: 3rem;
+            text-align: center;
+            font-family: var(--font-secondary);
+            color: var(--dark-navy);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+        .section-title::before, .section-title::after {
+            content: '';
+            display: block;
+            width: min(100px, 20vw);
+            height: 1px;
+            background-color: var(--light-gray);
+        }
+        .section-title span {
+            color: var(--accent);
+        }
+
+        /* About Section */
+        .about { 
+            display: flex; 
+            align-items: flex-start; 
+            gap: 4rem; 
+            position: relative;
+        }
+        .about-content { flex: 1; }
+        .about-image { flex: 1; max-width: 350px; }
+        .about-content p { margin-bottom: 1.5rem; line-height: 1.6; }
+
+        .timeline {
+            margin-top: 2rem;
+            position: relative;
+            padding-left: 30px;
+        }
+        .timeline::before {
+            content: '';
+            position: absolute;
+            width: 2px;
+            height: 100%;
+            background-color: var(--light-gray);
+            left: 0;
+        }
+        .timeline-item {
+            position: relative;
+            margin-bottom: 2rem;
+        }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: var(--accent);
+            left: -36px;
+            top: 5px;
+            transition: transform 0.3s ease;
+        }
+        .timeline-item:hover::before {
+            transform: scale(1.2);
+        }
+        .timeline-item h4 { color: var(--dark-navy); }
+
+        /* Features Section */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 3rem;
+        }
+        .feature-card {
+            background-color: var(--off-white);
+            border-radius: 4px;
+            box-shadow: 0 4px 15px -5px var(--shadow);
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 2rem;
+            text-align: center;
+        }
+        .feature-card:hover {
+            transform: translateY(-7px);
+            box-shadow: 0 10px 20px -5px var(--shadow);
+        }
+        .feature-icon {
+            font-size: 2.5rem;
+            color: var(--accent);
+            margin-bottom: 1rem;
+        }
+        .feature-content h3 { 
+            font-size: 1.3rem; 
+            margin-bottom: 0.75rem; 
+            color: var(--dark-navy); 
+        }
+        .feature-content p { 
+            color: var(--dark-gray); 
+            margin-bottom: 1rem; 
+            line-height: 1.5; 
+            font-size: 0.95rem;
+        }
+
+        /* How It Works Section */
+        .steps-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+        .step {
+            flex: 1;
+            min-width: 250px;
+            max-width: 300px;
+            text-align: center;
+            padding: 2rem;
+            background-color: var(--off-white);
+            border-radius: 4px;
+            box-shadow: 0 4px 15px -5px var(--shadow);
+            transition: all 0.3s ease;
+        }
+        .step:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px -5px var(--shadow);
+        }
+        .step-number {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: var(--accent);
+            color: white;
+            font-weight: bold;
+            margin: 0 auto 1rem;
+            font-size: 1.2rem;
+        }
+        .step h3 {
+            margin-bottom: 1rem;
+            color: var(--dark-navy);
+        }
+
+        /* Testimonials Section */
+        .testimonials-container {
+            max-width: 800px;
+            margin: 3rem auto 0;
+            position: relative;
+        }
+        .testimonial {
+            background-color: var(--off-white);
+            padding: 2rem;
+            border-radius: 4px;
+            box-shadow: 0 4px 15px -5px var(--shadow);
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+        .testimonial:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px -5px var(--shadow);
+        }
+        .testimonial-content {
+            font-style: italic;
+            margin-bottom: 1rem;
+        }
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+        }
+        .author-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            overflow: hidden;
+            margin-right: 1rem;
+        }
+        .author-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: grayscale(100%);
+            transition: filter 0.3s ease;
+        }
+        .testimonial:hover .author-avatar img {
+            filter: none;
+        }
+        .author-info h4 {
+            color: var(--dark-navy);
+            margin-bottom: 0.25rem;
+        }
+        .author-info p {
+            color: var(--dark-gray);
+            font-size: 0.9rem;
+        }
+
+        /* CTA Section */
+        .cta {
+            text-align: center;
+            padding: 4rem 5%;
+            background-color: var(--off-white);
+            border-radius: 4px;
+            margin: 0 auto;
+            max-width: 800px;
+            box-shadow: 0 4px 15px -5px var(--shadow);
+        }
+        .cta h2 {
+            font-size: clamp(26px, 5vw, 32px);
+            margin-bottom: 1rem;
+            color: var(--dark-navy);
+        }
+        .cta p {
+            margin-bottom: 2rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Footer */
+        .footer {
+            padding: 1.5rem 5%;
+            text-align: center;
+            font-size: 0.9rem;
+            color: var(--dark-gray);
+            background-color: var(--off-white);
+        }
+        .footer a {
+            color: var(--accent);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 992px) {
+            .hero { flex-direction: column; padding-top: 8rem; text-align: center; }
+            .hero-content { padding-right: 0; margin-bottom: 3rem; }
+            .about { flex-direction: column; align-items: center; }
+            .about-image { margin-bottom: 2rem; }
+            .graffiti { display: none; }
+        }
+
+        @media (max-width: 768px) {
+            .cursor-spotlight { display: none; }
+            .nav-links {
+                position: fixed;
+                right: 0;
+                top: 0;
+                background-color: var(--off-white);
+                height: 100vh;
+                width: min(75vw, 400px);
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 2rem;
+                transform: translateX(100%);
+                transition: transform 0.3s ease-out;
+                box-shadow: -10px 0px 30px -15px var(--shadow);
+            }
+            .nav-links.active { transform: translateX(0); }
+            .nav-links li { margin: 0; }
+            .burger {
+                display: block;
+                position: relative;
+                z-index: 1001;
+            }
+            .burger.active .line1 { transform: rotate(-45deg) translate(-5px, 6px); }
+            .burger.active .line2 { opacity: 0; }
+            .burger.active .line3 { transform: rotate(45deg) translate(-5px, -6px); }
+        }
+    </style>
+</head>
+<body>
+    <div class="preloader">
+        <div class="loader"></div>
+    </div>
+
+    <div class="cursor-spotlight"></div>
+
+    <header class="header">
+        <nav class="navbar">
+            <a href="#home" class="logo">HealthHub</a>
+            <ul class="nav-links">
+                <li><a href="#about">About</a></li>
+                <li><a href="#features">Features</a></li>
+                <li><a href="#how-it-works">How It Works</a></li>
+                <li><a href="#testimonials">Testimonials</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+            <div class="burger">
+                <div class="line1"></div>
+                <div class="line2"></div>
+                <div class="line3"></div>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section id="home" class="hero visible">
+            
+            
+            <div class="hero-content">
+                <p class="hero-intro">Welcome to</p>
+                <h1 class="hero-title">HealthHub</h1>
+                <h2 class="hero-subtitle">Online Doctor Consultation</h2>
+                <p class="hero-text">Connecting patients with doctors for virtual consultations. Get medical advice, prescriptions, and follow-up care from the comfort of your home.</p>
+                <a href="#how-it-works" class="btn hero-btn">Get Started Today</a>
+            </div>
+            <div class="hero-image">
+                <div class="image-container">
+                    <img src="https://samuelkits.github.io/Pic/8.jpg" alt="Doctor">
+                </div>
+            </div>
+        </section>
+
+        <section id="about" class="about">
+            <div class="about-content">
+                <h2 class="section-title"><span>About</span> HealthHub</h2>
+                <p>HealthHub is an innovative online platform that connects patients with qualified healthcare professionals for virtual consultations. We're revolutionizing healthcare access by making it convenient, affordable, and efficient.</p>
+                <p>Our platform uses MongoDB to securely store appointments, prescriptions, and chat history, ensuring your medical information is always accessible when you need it.</p>
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <h4>Role-Based Access</h4>
+                        <p>Secure login system for both doctors and patients with appropriate permissions and access levels.</p>
+                    </div>
+                    <div class="timeline-item">
+                        <h4>Video & Text Consultations</h4>
+                        <p>Choose between video calls or text-based chats based on your comfort and medical needs.</p>
+                    </div>
+                    <div class="timeline-item">
+                        <h4>Secure Data Storage</h4>
+                        <p>All medical records, prescriptions, and consultation history stored securely in MongoDB.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="about-image">
+                <div class="image-container">
+                    <img src="https://samuelkits.github.io/Pic/6.webp" alt="Medical technology">
+                </div>
+            </div>
+        </section>
+
+        <section id="features" class="features">
+            <h2 class="section-title">Platform <span>Features</span></h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-user-md"></i>
+                    </div>
+                    <div class="feature-content">
+                        <h3>Expert Doctors</h3>
+                        <p>Connect with qualified, verified healthcare professionals across various specialties.</p>
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-video"></i>
+                    </div>
+                    <div class="feature-content">
+                        <h3>Video Consultations</h3>
+                        <p>High-quality video calls for face-to-face consultations with your doctor.</p>
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                    <div class="feature-content">
+                        <h3>Secure Messaging</h3>
+                        <p>Private chat with your doctor for follow-up questions and prescription refills.</p>
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-file-prescription"></i>
+                    </div>
+                    <div class="feature-content">
+                        <h3>Digital Prescriptions</h3>
+                        <p>Receive and manage your prescriptions digitally, with options for pharmacy delivery.</p>
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <div class="feature-content">
+                        <h3>Easy Scheduling</h3>
+                        <p>Book appointments at your convenience with our intuitive scheduling system.</p>
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <div class="feature-content">
+                        <h3>Data Security</h3>
+                        <p>Your health information is protected with enterprise-grade security measures.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="how-it-works" class="how-it-works">
+            <h2 class="section-title">How It <span>Works</span></h2>
+            <div class="steps-container">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h3>Create Account</h3>
+                    <p>Sign up as a patient or doctor with our simple registration process.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h3>Book Appointment</h3>
+                    <p>Choose a doctor, select appointment type, and pick a convenient time.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h3>Consult Online</h3>
+                    <p>Connect via video call or chat for your consultation.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <h3>Receive Care</h3>
+                    <p>Get prescriptions, medical advice, and follow-up care instructions.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="testimonials" class="testimonials">
+            <h2 class="section-title">Patient <span>Testimonials</span></h2>
+            <div class="testimonials-container">
+                <div class="testimonial">
+                    <div class="testimonial-content">
+                        "HealthHub made it so easy to consult with a specialist without taking time off work. The video quality was excellent, and the doctor was very thorough."
+                    </div>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">
+                            <img src="https://samuelkits.github.io/Pic/2.jpg" alt="Sarah Johnson">
+                        </div>
+                        <div class="author-info">
+                            <h4>Sarah Johnson</h4>
+                            <p>Patient</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial">
+                    <div class="testimonial-content">
+                        "As a doctor, HealthHub has allowed me to expand my practice beyond the clinic. The platform is intuitive, and I can provide quality care to more patients."
+                    </div>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">
+                            <img src="https://samuelkits.github.io/Pic/3.jpg" alt="Dr. Michael Chen">
+                        </div>
+                        <div class="author-info">
+                            <h4>Dr. Michael Chen</h4>
+                            <p>Cardiologist</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="contact" class="contact">
+            <div class="cta">
+                <h2 class="section-title">Ready to Get <span>Started?</span></h2>
+                <p>Join thousands of patients and doctors who are already using HealthHub for convenient, accessible healthcare.</p>
+                <a href="login_main.html" class="btn">Sign Up Now</a>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <p>© 2025 HealthHub | Online Doctor Consultation Platform</p>
+        <p>MongoDB Integration | Role-Based Access | Secure Data Storage</p>
+    </footer>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // --- PRELOADER ---
+        const preloader = document.querySelector('.preloader');
+        window.addEventListener('load', () => {
+            preloader.classList.add('fade-out');
+        });
+
+        // --- CURSOR SPOTLIGHT ---
+        const spotlight = document.querySelector('.cursor-spotlight');
+        window.addEventListener('mousemove', (e) => {
+            spotlight.style.left = `${e.clientX}px`;
+            spotlight.style.top = `${e.clientY}px`;
+        });
+
+        // --- MOBILE MENU ---
+        const burger = document.querySelector('.burger');
+        const navLinks = document.querySelector('.nav-links');
+        burger.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+            burger.classList.toggle('active');
+        });
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', () => {
+                navLinks.classList.remove('active');
+                burger.classList.remove('active');
+            });
+        });
+
+        // --- SCROLL ANIMATIONS (using Intersection Observer for performance) ---
+        const sections = document.querySelectorAll('section');
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        sections.forEach(section => {
+            if (section.id !== 'home') {
+                observer.observe(section);
+            }
+        });
+    });
+    </script>
+</body>
+</html>
